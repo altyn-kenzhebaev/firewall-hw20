@@ -1,0 +1,34 @@
+---
+  - name: add default gateway for centralServer
+    lineinfile:
+      dest: /etc/sysconfig/network-scripts/ifcfg-eth0
+      line: DEFROUTE=no
+
+  - name: add default gateway for centralServer
+    lineinfile:
+      dest: /etc/sysconfig/network-scripts/ifcfg-eth1
+      line: GATEWAY=192.168.0.1
+  
+  - name: Install EPEL
+    yum:
+      name:
+      - epel-release
+      state: present
+      update_cache: true
+
+  - name: Install NGINX
+    yum:
+      name:
+      - nginx
+      state: present
+      update_cache: true
+    
+  - name: Start NGINX
+    systemd:
+      name: nginx
+      enabled: true
+      state: started
+
+  - name: Reboot to apply network routes
+    ansible.builtin.reboot:
+...

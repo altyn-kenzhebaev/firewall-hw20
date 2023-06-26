@@ -1,0 +1,74 @@
+---
+  - name: Stop and disable Firewalld
+    systemd:
+      name: firewalld
+      state: stopped
+      enabled: false
+
+  - name: Install iptables
+    yum:
+      name:
+      - iptables
+      - iptables-services
+      state: present
+      update_cache: true
+      
+  - name: Install EPEL
+    yum:
+      name:
+      - epel-release
+      state: present
+      update_cache: true
+
+  - name: Install Knock Server
+    yum:
+      name:
+      - knock-server
+      state: present
+      update_cache: true
+
+  - name: Copy knockd config
+    copy:
+      dest: /etc/knockd.conf
+      src: knockd.conf
+      owner: root
+      group: root
+      mode: 0640
+    
+  - name: Start Knock Server
+    systemd:
+      name: knockd
+      enabled: true
+      state: started
+
+  - name: Copy iptables config
+    copy:
+      dest: /etc/sysconfig/iptables
+      src: iptables
+      owner: root
+      group: root
+      mode: 0600
+
+  - name: Start and enable iptables
+    systemd:
+      name: iptables
+      state: restarted
+      enabled: true
+
+  - name: Set up route on inetRouter1 eth1
+    copy:
+      dest: /etc/sysconfig/network-scripts/route-eth1
+      src: inetRouter_route_eth1
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Set up forward packages across routers
+    sysctl:
+      name: net.ipv4.conf.all.forwarding
+      value: '1'
+      state: present
+
+  - name: Reboot to apply network routes
+    ansible.builtin.reboot:
+...

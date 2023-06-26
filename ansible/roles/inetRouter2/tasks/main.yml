@@ -1,0 +1,46 @@
+---
+  - name: Stop and disable Firewalld
+    systemd:
+      name: firewalld
+      state: stopped
+      enabled: false
+
+  - name: Install iptables
+    yum:
+      name:
+      - iptables
+      - iptables-services
+      state: present
+      update_cache: true
+      
+  - name: Copy iptables config
+    copy:
+      dest: /etc/sysconfig/iptables
+      src: iptables
+      owner: root
+      group: root
+      mode: 0600
+
+  - name: Start and enable iptables
+    systemd:
+      name: iptables
+      state: restarted
+      enabled: true
+
+  - name: Set up route on inetRouter eth1
+    copy:
+      dest: /etc/sysconfig/network-scripts/route-eth1
+      src: inetRouter_route_eth1
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Set up forward packages across routers
+    sysctl:
+      name: net.ipv4.conf.all.forwarding
+      value: '1'
+      state: present
+
+  - name: Reboot to apply network routes
+    ansible.builtin.reboot:
+...
